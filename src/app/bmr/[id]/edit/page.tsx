@@ -1,0 +1,82 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Button, message, Spin } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import BMRForm from '@/components/BMRForm';
+import { BMRData } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
+import { mapBMRDataToDb, mapDbToBMRData } from '@/lib/data-utils';
+
+export default function EditBMR() {
+    const router = useRouter();
+    const params = useParams();
+    const [record, setRecord] = useState<BMRData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecord = async () => {
+            if (!params.id) return;
+            try {
+                const { data, error } = await supabase
+                    .from('bmr')
+                    .select('*')
+                    .eq('id', params.id)
+                    .single();
+
+                if (error) throw error;
+                setRecord(mapDbToBMRData(data));
+            } catch (error: any) {
+                message.error('Failed to fetch record: ' + error.message);
+                router.push('/');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchRecord();
+    }, [params.id, router]);
+
+    const handleSave = async (data: BMRData) => {
+        try {
+            const dbData = mapBMRDataToDb(data);
+            const { error } = await supabase
+                .from('bmr')
+                .update(dbData)
+                .eq('id', params.id);
+
+            if (error) throw error;
+
+            message.success('BMR updated successfully');
+            router.push('/');
+        } catch (error: any) {
+            message.error('Error updating BMR: ' + error.message);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Spin size="large" tip="Loading Record..." />
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 pb-20">
+            <div className="p-4 bg-white border-b shadow-sm sticky top-0 z-20 flex justify-between items-center">
+                <Button
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => router.push('/')}
+                >
+                    Back to Dashboard
+                </Button>
+                <div className="text-gray-500 font-bold">Editing Batch: {record?.batchNo}</div>
+            </div>
+
+            <div className="mt-6">
+                <BMRForm initialData={record || {}} onSave={handleSave} />
+            </div>
+        </div>
+    );
+}
