@@ -77,7 +77,7 @@ export interface BMRData {
     packingMaterials: PackingMaterial[];
     kitContents?: KitContent[];
 
-    processSteps: Record<string, ProcessStep | KitProcessItem[]>;
+    processSteps: Record<string, ProcessStep | (KitProcessItem[] & { verifiedProduction?: string; verifiedQA?: string })>;
 
     sterilization: {
         type: 'ETO' | 'Gamma';

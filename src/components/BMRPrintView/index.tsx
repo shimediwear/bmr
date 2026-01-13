@@ -258,8 +258,8 @@ const BMRPrintView: React.FC<BMRPrintViewProps> = ({ data }) => {
                                                     </tbody>
                                                 </table>
                                                 <div className="flex border border-black border-t-0 text-[10px] p-1 gap-4 font-bold bg-gray-50">
-                                                    <div>Verified By (Prod): {step.verifiedProduction || '---'}</div>
-                                                    <div>Verified By (QA): {step.verifiedQA || '---'}</div>
+                                                    <div>Verified By (Prod): {(step as any).verifiedProduction || '---'}</div>
+                                                    <div>Verified By (QA): {(step as any).verifiedQA || '---'}</div>
                                                 </div>
                                             </div>
                                         );
