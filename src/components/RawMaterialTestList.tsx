@@ -169,7 +169,7 @@ const RawMaterialTestList: React.FC = () => {
                 <RawMaterialTestForm
                     initialValues={editingReport || undefined}
                     onSuccess={() => {
-                        setIsModalVisible(false);
+                        // setIsModalVisible(false);
                         fetchReports();
                     }}
                 />
