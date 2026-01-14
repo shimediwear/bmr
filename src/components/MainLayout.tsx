@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import { Layout } from 'antd';
 import Sidebar from './Sidebar';
+import { usePathname } from 'next/navigation';
 
 const { Content } = Layout;
 
@@ -11,6 +11,13 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+    const pathname = usePathname();
+    const isLoginPage = pathname === '/login';
+
+    if (isLoginPage) {
+        return <>{children}</>;
+    }
+
     return (
         <Layout style={{ minHeight: '100vh' }}>
             <Sidebar />

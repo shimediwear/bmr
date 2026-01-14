@@ -102,6 +102,8 @@ const BMRForm: React.FC<BMRFormProps> = ({ initialData, onSave }) => {
     const onFinish = async (values: any) => {
         setLoading(true);
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+
             const bmrData = {
                 ...values,
                 mfgDate: values.mfgDate?.format?.('YYYY-MM-DD') || values.mfgDate,
@@ -113,7 +115,10 @@ const BMRForm: React.FC<BMRFormProps> = ({ initialData, onSave }) => {
             if (onSave) {
                 onSave(bmrData);
             } else {
-                const { error } = await supabase.from('bmr').insert([bmrData]);
+                const { error } = await supabase.from('bmr').insert([{
+                    ...bmrData,
+                    generated_by: user?.id
+                }]);
                 if (error) throw error;
                 message.success('BMR saved successfully');
             }

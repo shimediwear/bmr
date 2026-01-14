@@ -39,7 +39,8 @@ export default function EditBMR() {
 
     const handleSave = async (data: BMRData) => {
         try {
-            const dbData = mapBMRDataToDb(data);
+            const { data: { user } } = await supabase.auth.getUser();
+            const dbData = mapBMRDataToDb(data, user?.id);
             const { error } = await supabase
                 .from('bmr')
                 .update(dbData)

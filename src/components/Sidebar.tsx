@@ -5,9 +5,12 @@ import { Layout, Menu } from 'antd';
 import {
     FileTextOutlined,
     ExperimentOutlined,
-    DashboardOutlined
+    DashboardOutlined,
+    LogoutOutlined
 } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { message } from 'antd';
 
 const { Sider } = Layout;
 
@@ -36,7 +39,28 @@ const Sidebar: React.FC = () => {
             icon: <FileTextOutlined />,
             label: 'Raw Materials',
         },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: 'Logout',
+            danger: true,
+        },
     ];
+
+    const handleMenuClick = async (key: string) => {
+        if (key === 'logout') {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                message.success('Logged out successfully');
+                router.push('/login');
+            } catch (error: any) {
+                message.error('Error logging out: ' + error.message);
+            }
+        } else {
+            router.push(key);
+        }
+    };
 
     return (
         <Sider
@@ -50,6 +74,7 @@ const Sidebar: React.FC = () => {
                 top: 0,
                 bottom: 0,
                 borderRight: '1px solid #f0f0f0',
+                zIndex: 100,
             }}
         >
             <div style={{ height: 64, margin: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,7 +84,7 @@ const Sidebar: React.FC = () => {
                 mode="inline"
                 selectedKeys={[pathname]}
                 items={menuItems}
-                onClick={({ key }) => router.push(key)}
+                onClick={({ key }) => handleMenuClick(key as string)}
             />
         </Sider>
     );

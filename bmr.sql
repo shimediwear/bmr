@@ -24,12 +24,36 @@ CREATE TABLE public.bmr (
   final_packing jsonb DEFAULT '{}'::jsonb,
   declarations jsonb DEFAULT '{}'::jsonb,
   status text DEFAULT 'draft'::text,
-  document_no text,
-  revision_no text,
-  issue_no text,
   bmr_type text DEFAULT 'standard'::text,
   kit_contents jsonb DEFAULT '[]'::jsonb,
-  CONSTRAINT bmr_pkey PRIMARY KEY (id)
+  raw_material_for_specification bigint,
+  product_type text,
+  is_coa_generated boolean DEFAULT false,
+  generated_by uuid,
+  CONSTRAINT bmr_pkey PRIMARY KEY (id),
+  CONSTRAINT bmr_raw_material_for_specification_fkey FOREIGN KEY (raw_material_for_specification) REFERENCES public.rm_test_reports(id),
+  CONSTRAINT bmr_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.coa (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  bmr_id bigint,
+  coa_no text,
+  cover_type text,
+  date_of_sample timestamp with time zone,
+  completion_date timestamp with time zone,
+  description text,
+  rm_id bigint,
+  rm_details json,
+  physical_properties json,
+  sterility text,
+  result text,
+  generated_by uuid,
+  updated_at timestamp with time zone,
+  CONSTRAINT coa_pkey PRIMARY KEY (id),
+  CONSTRAINT coa_bmr_id_fkey FOREIGN KEY (bmr_id) REFERENCES public.bmr(id),
+  CONSTRAINT coa_rm_id_fkey FOREIGN KEY (rm_id) REFERENCES public.rm_test_reports(id),
+  CONSTRAINT coa_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.fabrics (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -40,13 +64,13 @@ CREATE TABLE public.fabrics (
   CONSTRAINT fabrics_pkey PRIMARY KEY (id),
   CONSTRAINT fabrics_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id)
 );
-CREATE TABLE public.in_coming_report (
+CREATE TABLE public.rm_test_reports (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   product_name text NOT NULL,
-  report_no text NOT NULL,
+  report_no text NOT NULL UNIQUE,
   performance_level text NOT NULL,
-  batch_no text NOT NULL,
+  batch_no text NOT NULL UNIQUE,
   supplier_name bigint NOT NULL,
   batch_size text NOT NULL,
   invoice_no text NOT NULL,
@@ -64,7 +88,9 @@ CREATE TABLE public.in_coming_report (
   tested_by text NOT NULL,
   reviewed_by text NOT NULL,
   updated_at timestamp with time zone,
-  CONSTRAINT in_coming_report_pkey PRIMARY KEY (id),
+  generated_by uuid,
+  CONSTRAINT rm_test_reports_pkey PRIMARY KEY (id),
+  CONSTRAINT rm_test_reports_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES auth.users(id),
   CONSTRAINT in_coming_report_supplier_name_fkey FOREIGN KEY (supplier_name) REFERENCES public.suppliers(id)
 );
 CREATE TABLE public.suppliers (

@@ -24,7 +24,7 @@ export const mapDbToBMRData = (item: any): BMRData => ({
     rawMaterialForSpecification: item.raw_material_for_specification,
 });
 
-export const mapBMRDataToDb = (data: BMRData) => ({
+export const mapBMRDataToDb = (data: BMRData, userId?: string) => ({
     product_name: data.productName,
     product_code: data.productCode,
     brand_name: data.brandName,
@@ -51,6 +51,7 @@ export const mapBMRDataToDb = (data: BMRData) => ({
     bmr_type: data.bmrType || 'standard',
     product_type: data.productType,
     raw_material_for_specification: data.rawMaterialForSpecification,
+    generated_by: userId,
     updated_at: new Date().toISOString(),
 });
 
@@ -75,9 +76,10 @@ export const mapDbToIncomingReport = (item: any) => ({
     visualResults: item.visual_results,
     testedBy: item.tested_by,
     reviewedBy: item.reviewed_by,
+    generatedBy: item.generated_by,
 });
 
-export const mapIncomingReportToDb = (data: any) => ({
+export const mapIncomingReportToDb = (data: any, userId?: string) => ({
     product_name: data.productName,
     report_no: data.reportNo,
     performance_level: data.performanceLevel,
@@ -98,4 +100,5 @@ export const mapIncomingReportToDb = (data: any) => ({
     result: data.result,
     tested_by: data.testedBy,
     reviewed_by: data.reviewedBy,
+    generated_by: userId,
 });

@@ -200,6 +200,8 @@ const RawMaterialTestForm: React.FC<RawMaterialTestFormProps> = ({ initialValues
                 }));
             };
 
+            const { data: { user } } = await supabase.auth.getUser();
+
             const finalValues = {
                 ...values,
                 parametersResults: mergeStaticData(values.parametersResults, getDefaultParameters(values.performanceLevel)),
@@ -213,7 +215,7 @@ const RawMaterialTestForm: React.FC<RawMaterialTestFormProps> = ({ initialValues
                 updated_at: new Date().toISOString(),
             };
 
-            const dbData = mapIncomingReportToDb(finalValues);
+            const dbData = mapIncomingReportToDb(finalValues, user?.id);
 
             let error;
             if (initialValues?.id) {
