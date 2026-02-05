@@ -27,7 +27,7 @@ const { Option } = Select;
 
 const LEVEL_CONFIG: Record<string, Record<string, { standard: string, unit: string, unitOptions?: string[] }>> = {
     'LEVEL 1': {
-        'Basic Weight (GSM)': { standard: '35 to 100 GSM ± 2 GSM', unit: 'GSM' },
+        'Basic Weight (GSM)': { standard: '35 to 120 GSM ± 2 GSM', unit: 'GSM' },
         'Impact Penetration (gm)': { standard: '≤ 4.5', unit: 'g' },
         'Hydrostatic Resistance': { standard: 'NA', unit: 'cmwc' },
         'Tensile Strength - Dry (MD) (Newton/Kgf)': { standard: '≥ 20 / 2.1', unit: 'N', unitOptions: ['N', 'Kgf'] },
@@ -43,7 +43,7 @@ const LEVEL_CONFIG: Record<string, Record<string, { standard: string, unit: stri
         'Cleanliness Microbial (CFU/100 cm²)': { standard: '≤ 300', unit: 'CFU/100 cm²' },
     },
     'LEVEL 2': {
-        'Basic Weight (GSM)': { standard: '35 to 100 GSM ± 2 GSM', unit: 'GSM' },
+        'Basic Weight (GSM)': { standard: '35 to 120 GSM ± 2 GSM', unit: 'GSM' },
         'Impact Penetration (gm)': { standard: '≤ 1.0', unit: 'g' },
         'Hydrostatic Resistance': { standard: '≥ 20', unit: 'cmwc' },
         'Tensile Strength - Dry (MD) (Newton/Kgf)': { standard: '≥ 20 / 2.1', unit: 'N', unitOptions: ['N', 'Kgf'] },
@@ -59,7 +59,7 @@ const LEVEL_CONFIG: Record<string, Record<string, { standard: string, unit: stri
         'Cleanliness Microbial (CFU/100 cm²)': { standard: '≤ 300', unit: 'CFU/100 cm²' },
     },
     'LEVEL 3': {
-        'Basic Weight (GSM)': { standard: '35 to 100 GSM ± 2 GSM', unit: 'GSM' },
+        'Basic Weight (GSM)': { standard: '35 to 120 GSM ± 2 GSM', unit: 'GSM' },
         'Impact Penetration (gm)': { standard: '≤ 1.0', unit: 'g' },
         'Hydrostatic Resistance': { standard: '≥ 50', unit: 'cmwc' },
         'Tensile Strength - Dry (MD) (Newton/Kgf)': { standard: '≥ 20 / 2.1', unit: 'N', unitOptions: ['N', 'Kgf'] },
@@ -75,7 +75,7 @@ const LEVEL_CONFIG: Record<string, Record<string, { standard: string, unit: stri
         'Cleanliness Microbial (CFU/100 cm²)': { standard: '≤ 300', unit: 'CFU/100 cm²' },
     },
     'LEVEL 4': {
-        'Basic Weight (GSM)': { standard: '35 to 100 GSM ± 2 GSM', unit: 'GSM' },
+        'Basic Weight (GSM)': { standard: '35 to 120 GSM ± 2 GSM', unit: 'GSM' },
         'Impact Penetration (gm)': { standard: 'NA', unit: 'g' },
         'Hydrostatic Resistance': { standard: 'NA', unit: 'cmwc' },
         'Tensile Strength - Dry (MD) (Newton/Kgf)': { standard: '≥ 20 / 2.1', unit: 'N', unitOptions: ['N', 'Kgf'] },

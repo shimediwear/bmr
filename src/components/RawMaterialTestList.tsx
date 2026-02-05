@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { IncomingReport } from '@/lib/types';
 import { mapDbToIncomingReport } from '@/lib/data-utils';
 import RawMaterialTestForm from './RawMaterialTestForm';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import RawMaterialTestPDF from './RawMaterialTestPDF';
 
 const RawMaterialTestList: React.FC = () => {
@@ -15,6 +15,7 @@ const RawMaterialTestList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingReport, setEditingReport] = useState<IncomingReport | null>(null);
+    const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
     const fetchReports = async () => {
         setLoading(true);
@@ -53,6 +54,29 @@ const RawMaterialTestList: React.FC = () => {
             fetchReports();
         } catch (error: any) {
             message.error('Failed to delete report: ' + error.message);
+        }
+    };
+
+    const handleDownload = async (record: IncomingReport) => {
+        if (!record.id) return;
+        setDownloadingId(record.id);
+        try {
+            const blob = await pdf(
+                <RawMaterialTestPDF data={record} supplierName={(record as any).suppliers?.name} />
+            ).toBlob();
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Raw_Material_Test_Report_${record.reportNo}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error: any) {
+            message.error('Failed to generate PDF: ' + error.message);
+        } finally {
+            setDownloadingId(null);
         }
     };
 
@@ -106,19 +130,12 @@ const RawMaterialTestList: React.FC = () => {
                             setIsModalVisible(true);
                         }}
                     />
-                    <PDFDownloadLink
-                        document={<RawMaterialTestPDF data={record} supplierName={(record as any).suppliers?.name} />}
-                        fileName={`Raw_Material_Test_Report_${record.reportNo}.pdf`}
-                        style={{ textDecoration: 'none' }}
-                    >
-                        {({ loading }: { loading: boolean }) => (
-                            <Button
-                                icon={loading ? <LoadingOutlined /> : <DownloadOutlined />}
-                                title="Download PDF"
-                                disabled={loading}
-                            />
-                        )}
-                    </PDFDownloadLink>
+                    <Button
+                        icon={downloadingId === record.id ? <LoadingOutlined /> : <DownloadOutlined />}
+                        title="Download PDF"
+                        disabled={downloadingId === record.id}
+                        onClick={() => handleDownload(record)}
+                    />
                     <Button
                         danger
                         icon={<DeleteOutlined />}
