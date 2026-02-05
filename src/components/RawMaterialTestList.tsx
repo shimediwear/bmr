@@ -113,7 +113,7 @@ const RawMaterialTestList: React.FC = () => {
             dataIndex: 'result',
             key: 'result',
             render: (result: string) => (
-                <Tag color={result === 'Comply' ? 'success' : 'error'}>
+                <Tag color={result === 'comply' ? 'success' : 'error'}>
                     {result}
                 </Tag>
             ),

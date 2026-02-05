@@ -149,7 +149,7 @@ const RawMaterialTestForm: React.FC<RawMaterialTestFormProps> = ({ initialValues
                 parametersResults: getDefaultParameters(defaultLevel),
                 biocompatibilityResult: defaultBiocompatibility,
                 visualResults: defaultVisualDefects,
-                result: 'Comply',
+                result: 'comply',
                 testedBy: 'Monu',
                 reviewedBy: 'Jyoti',
             });
@@ -402,8 +402,8 @@ const RawMaterialTestForm: React.FC<RawMaterialTestFormProps> = ({ initialValues
                     <Col span={8}>
                         <Form.Item name="result" label="Final Result" rules={[{ required: true }]}>
                             <Select>
-                                <Option value="Comply">Comply</Option>
-                                <Option value="Does not Comply">Does not Comply</Option>
+                                <Option value="comply">Comply</Option>
+                                <Option value="does not comply">Does not Comply</Option>
                             </Select>
                         </Form.Item>
                     </Col>

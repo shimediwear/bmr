@@ -12,6 +12,14 @@ const Text = PDFText as any;
 const View = PDFView as any;
 const Image = PDFImage as any;
 
+// Register Roboto font to fix rendering issues with symbols like < and >
+Font.register({
+    family: 'Roboto',
+    fonts: [
+        { src: '/fonts/Roboto-Regular.ttf' },
+        { src: '/fonts/Roboto-Bold.ttf', fontWeight: 'bold' }
+    ]
+});
 
 const styles = StyleSheet.create({
     page: {
@@ -19,7 +27,7 @@ const styles = StyleSheet.create({
         paddingBottom: 60,
         paddingHorizontal: 30,
         fontSize: 10,
-        fontFamily: 'Helvetica',
+        fontFamily: 'Roboto',
     },
     header: {
         position: 'absolute',
@@ -272,7 +280,7 @@ const ResultTable: React.FC<{ title: string; results: TestResult[]; showUnit?: b
                     <View style={[styles.tableCell, { width: showUnit ? '30%' : '37%' }]}><Text>{r.test}</Text></View>
                     <View style={[styles.tableCell, { width: showUnit ? '30%' : '35%', textAlign: 'center' }]}><Text>{r.standard}</Text></View>
                     {showUnit && <View style={[styles.tableCell, { width: '12%' }]}><Text style={styles.center}>{r.unit || '---'}</Text></View>}
-                    <View style={[styles.tableCellNoRight, { width: '20%' }]}><Text style={styles.center}>{r.result}</Text></View>
+                    <View style={[styles.tableCellNoRight, { width: '20%' }]}><Text style={[styles.center, { fontWeight: 'bold' }]}>{r.result}</Text></View>
                 </View>
             ))}
         </View>
@@ -343,16 +351,17 @@ const RawMaterialTestPDF: React.FC<Props> = ({ data, supplierName }) => {
                     <View style={styles.table}>
                         <View style={styles.tableRowNoBorder}>
                             <View style={[styles.tableCell, styles.labelCol, { width: '25%' }]}><Text>Final Result</Text></View>
-                            <View style={[styles.tableCellNoRight, { width: '75%', paddingLeft: 10 }]}><Text style={styles.bold}>{data.result}</Text></View>
+                            <View style={[styles.tableCellNoRight, { width: '75%', paddingLeft: 10 }]}><Text style={styles.bold}>The samples {data.result} with all the specifications as per the standard</Text></View>
                         </View>
                     </View>
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 40 }}>
-                        <View style={{ width: '45%', borderTopWidth: 1, borderTopColor: 'black', textAlign: 'center', paddingTop: 5 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                        <View style={{ width: '35%', textAlign: 'center', paddingTop: 5 }}>
+                            <Image src="/monu.png" style={{ width: 40, height: 40, alignSelf: 'center', paddingBottom: 5 }} />
                             <Text style={styles.bold}>Tested By</Text>
                             <Text>{data.testedBy}</Text>
                         </View>
-                        <View style={{ width: '45%', textAlign: 'center', paddingTop: 5 }}>
+                        <View style={{ width: '55%', textAlign: 'center', paddingTop: 5 }}>
                             <Image src="/sign.png" style={{ width: 50, height: 50, alignSelf: 'center', paddingBottom: 5 }} />
                             <Text style={styles.bold}>Reviewed By</Text>
                             <Text>{data.reviewedBy}</Text>
