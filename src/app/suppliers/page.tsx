@@ -15,16 +15,33 @@ export default function SuppliersPage() {
     const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
     const [form] = Form.useForm();
 
-    const fetchSuppliers = async () => {
+    // Pagination and Search State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [searchText, setSearchText] = useState('');
+
+    const fetchSuppliers = async (page = currentPage, limit = pageSize, search = searchText) => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const from = (page - 1) * limit;
+            const to = from + limit - 1;
+
+            let query = supabase
                 .from('suppliers')
-                .select('*')
-                .order('name', { ascending: true });
+                .select('*', { count: 'exact' });
+
+            if (search) {
+                query = query.ilike('name', `%${search}%`);
+            }
+
+            const { data, count, error } = await query
+                .order('name', { ascending: true })
+                .range(from, to);
 
             if (error) throw error;
             setSuppliers(data || []);
+            setTotal(count || 0);
         } catch (error: any) {
             message.error('Failed to fetch suppliers: ' + error.message);
         } finally {
@@ -33,8 +50,18 @@ export default function SuppliersPage() {
     };
 
     useEffect(() => {
-        fetchSuppliers();
-    }, []);
+        fetchSuppliers(currentPage, pageSize, searchText);
+    }, [currentPage, pageSize, searchText]);
+
+    const handleTableChange = (pagination: any) => {
+        setCurrentPage(pagination.current);
+        setPageSize(pagination.pageSize);
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchText(value);
+        setCurrentPage(1);
+    };
 
     const showModal = (supplier: Supplier | null = null) => {
         setEditingSupplier(supplier);
@@ -122,13 +149,22 @@ export default function SuppliersPage() {
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <Title level={2}>Manage Suppliers</Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => showModal()}
-                >
-                    Add Supplier
-                </Button>
+                <Space>
+                    <Input.Search
+                        placeholder="Search supplier name"
+                        onSearch={handleSearch}
+                        style={{ width: 300 }}
+                        allowClear
+                        enterButton
+                    />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => showModal()}
+                    >
+                        Add Supplier
+                    </Button>
+                </Space>
             </div>
 
             <Card className="shadow-sm">
@@ -137,7 +173,14 @@ export default function SuppliersPage() {
                     dataSource={suppliers}
                     rowKey="id"
                     loading={loading}
-                    pagination={{ pageSize: 15 }}
+                    pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: total,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Total ${total} items`,
+                    }}
+                    onChange={handleTableChange}
                 />
             </Card>
 

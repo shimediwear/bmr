@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
 interface Props {
     data: IncomingReport;
     supplierName?: string;
+    withSignature?: boolean;
 }
 
 const PageBorder: React.FC = () => (
@@ -287,7 +288,7 @@ const ResultTable: React.FC<{ title: string; results: TestResult[]; showUnit?: b
     </View>
 );
 
-const RawMaterialTestPDF: React.FC<Props> = ({ data, supplierName }) => {
+const RawMaterialTestPDF: React.FC<Props> = ({ data, supplierName, withSignature = true }) => {
     return (
         <Document title={`RM_Report_${data.reportNo}`}>
             <Page size="A4" style={styles.page}>
@@ -357,12 +358,20 @@ const RawMaterialTestPDF: React.FC<Props> = ({ data, supplierName }) => {
 
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                         <View style={{ width: '35%', textAlign: 'center', paddingTop: 5 }}>
-                            <Image src="/monu.png" style={{ width: 40, height: 40, alignSelf: 'center', paddingBottom: 5 }} />
+                            {withSignature ? (
+                                <Image src="/monu.png" style={{ width: 40, height: 40, alignSelf: 'center', paddingBottom: 5 }} />
+                            ) : (
+                                <View style={{ width: '80%', height: 40, alignSelf: 'center', borderBottomWidth: 1, borderBottomColor: 'black', marginBottom: 5 }} />
+                            )}
                             <Text style={styles.bold}>Tested By</Text>
                             <Text>{data.testedBy}</Text>
                         </View>
                         <View style={{ width: '55%', textAlign: 'center', paddingTop: 5 }}>
-                            <Image src="/sign.png" style={{ width: 50, height: 50, alignSelf: 'center', paddingBottom: 5 }} />
+                            {withSignature ? (
+                                <Image src="/sign.png" style={{ width: 50, height: 50, alignSelf: 'center', paddingBottom: 5 }} />
+                            ) : (
+                                <View style={{ width: '80%', height: 40, alignSelf: 'center', borderBottomWidth: 1, borderBottomColor: 'black', marginBottom: 5 }} />
+                            )}
                             <Text style={styles.bold}>Reviewed By</Text>
                             <Text>{data.reviewedBy}</Text>
                         </View>

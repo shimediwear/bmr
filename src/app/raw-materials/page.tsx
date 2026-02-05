@@ -17,29 +17,68 @@ export default function RawMaterialsPage() {
     const [editingMaterial, setEditingMaterial] = useState<Fabric | null>(null);
     const [form] = Form.useForm();
 
-    const fetchData = async () => {
+    // Pagination and Search State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [searchText, setSearchText] = useState('');
+
+    const fetchMaterials = async (page = currentPage, limit = pageSize, search = searchText) => {
         setLoading(true);
         try {
-            const [materialsRes, suppliersRes] = await Promise.all([
-                supabase.from('fabrics').select('*, suppliers(name)').order('name', { ascending: true }),
-                supabase.from('suppliers').select('*').order('name', { ascending: true })
-            ]);
+            const from = (page - 1) * limit;
+            const to = from + limit - 1;
 
-            if (materialsRes.error) throw materialsRes.error;
-            if (suppliersRes.error) throw suppliersRes.error;
+            let query = supabase
+                .from('fabrics')
+                .select('*, suppliers(name)', { count: 'exact' });
 
-            setMaterials(materialsRes.data || []);
-            setSuppliers(suppliersRes.data || []);
+            if (search) {
+                query = query.ilike('name', `%${search}%`);
+            }
+
+            const { data, count, error } = await query
+                .order('created_at', { ascending: false }) // Changed to created_at desc for better UX on new items, or keep name ascending if preferred. Let's stick to name ascending as per previous code but paginated? Usually list is latest first. Previous was name asc. Let's keeping name asc.
+                .order('name', { ascending: true })
+                .range(from, to);
+
+            if (error) throw error;
+            setMaterials(data || []);
+            setTotal(count || 0);
         } catch (error: any) {
-            message.error('Failed to fetch data: ' + error.message);
+            message.error('Failed to fetch materials: ' + error.message);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchSuppliers = async () => {
+        try {
+            const { data, error } = await supabase.from('suppliers').select('*').order('name', { ascending: true });
+            if (error) throw error;
+            setSuppliers(data || []);
+        } catch (error: any) {
+            message.error('Failed to fetch suppliers: ' + error.message);
+        }
+    };
+
     useEffect(() => {
-        fetchData();
+        fetchSuppliers();
     }, []);
+
+    useEffect(() => {
+        fetchMaterials(currentPage, pageSize, searchText);
+    }, [currentPage, pageSize, searchText]);
+
+    const handleTableChange = (pagination: any) => {
+        setCurrentPage(pagination.current);
+        setPageSize(pagination.pageSize);
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchText(value);
+        setCurrentPage(1);
+    };
 
     const showModal = (material: Fabric | null = null) => {
         setEditingMaterial(material);
@@ -73,7 +112,7 @@ export default function RawMaterialsPage() {
                 if (error) throw error;
                 message.success('Raw material added successfully');
             }
-            fetchData();
+            fetchMaterials();
             handleCancel();
         } catch (error: any) {
             message.error('Operation failed: ' + error.message);
@@ -90,7 +129,7 @@ export default function RawMaterialsPage() {
                 .eq('id', id);
             if (error) throw error;
             message.success('Raw material deleted successfully');
-            fetchData();
+            fetchMaterials();
         } catch (error: any) {
             message.error('Delete failed: ' + error.message);
         }
@@ -138,13 +177,22 @@ export default function RawMaterialsPage() {
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <Title level={2}>Manage Raw Materials</Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => showModal()}
-                >
-                    Add Raw Material
-                </Button>
+                <Space>
+                    <Input.Search
+                        placeholder="Search material name"
+                        onSearch={handleSearch}
+                        style={{ width: 300 }}
+                        allowClear
+                        enterButton
+                    />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => showModal()}
+                    >
+                        Add Raw Material
+                    </Button>
+                </Space>
             </div>
 
             <Card className="shadow-sm">
@@ -153,7 +201,15 @@ export default function RawMaterialsPage() {
                     dataSource={materials}
                     rowKey="id"
                     loading={loading}
-                    pagination={{ pageSize: 15 }}
+                    pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: total,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Total ${total} items`,
+                        onChange: handleTableChange // Note: Antd Table onChange handles pagination if configured like this, but we are using controlled pagination
+                    }}
+                    onChange={handleTableChange}
                 />
             </Card>
 
@@ -180,11 +236,16 @@ export default function RawMaterialsPage() {
                         label="Supplier"
                         rules={[{ required: true, message: 'Please select a supplier!' }]}
                     >
-                        <Select placeholder="Select supplier">
-                            {suppliers.map(s => (
-                                <Option key={s.id} value={s.id}>{s.name}</Option>
-                            ))}
-                        </Select>
+                        <Select
+                            showSearch
+                            placeholder="Select supplier"
+                            optionFilterProp="label"
+                            options={suppliers.map(s => ({
+                                value: s.id,
+                                label: s.name,
+                            }))}
+                        />
+
                     </Form.Item>
                     <Form.Item
                         name="width"

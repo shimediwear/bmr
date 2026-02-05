@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Modal, Tag } from 'antd';
+import { Table, Button, Space, message, Modal, Tag, Input } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, LoadingOutlined } from '@ant-design/icons';
 import { supabase } from '@/lib/supabase';
 import { IncomingReport } from '@/lib/types';
@@ -16,21 +16,41 @@ const RawMaterialTestList: React.FC = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingReport, setEditingReport] = useState<IncomingReport | null>(null);
     const [downloadingId, setDownloadingId] = useState<number | null>(null);
+    const [isDownloadModalVisible, setIsDownloadModalVisible] = useState(false);
+    const [downloadRecord, setDownloadRecord] = useState<IncomingReport | null>(null);
 
-    const fetchReports = async () => {
+    // Pagination and Search State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [searchText, setSearchText] = useState('');
+
+    const fetchReports = async (page = currentPage, limit = pageSize, search = searchText) => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const from = (page - 1) * limit;
+            const to = from + limit - 1;
+
+            let query = supabase
                 .from('rm_test_reports')
                 .select(`
           *,
           suppliers (name)
-        `)
-                .order('created_at', { ascending: false });
+        `, { count: 'exact' });
+
+            if (search) {
+                // Search in reportNo, productName, batchNo
+                query = query.or(`report_no.ilike.%${search}%,product_name.ilike.%${search}%,batch_no.ilike.%${search}%`);
+            }
+
+            const { data, count, error } = await query
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
             if (error) throw error;
             const mappedData = (data || []).map(mapDbToIncomingReport);
             setReports(mappedData);
+            setTotal(count || 0);
         } catch (error: any) {
             message.error('Failed to fetch reports: ' + error.message);
         } finally {
@@ -39,8 +59,18 @@ const RawMaterialTestList: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchReports();
-    }, []);
+        fetchReports(currentPage, pageSize, searchText);
+    }, [currentPage, pageSize, searchText]);
+
+    const handleTableChange = (pagination: any) => {
+        setCurrentPage(pagination.current);
+        setPageSize(pagination.pageSize);
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchText(value);
+        setCurrentPage(1); // Reset to first page on new search
+    };
 
     const handleDelete = async (id: number) => {
         try {
@@ -50,25 +80,28 @@ const RawMaterialTestList: React.FC = () => {
                 .eq('id', id);
 
             if (error) throw error;
+            if (error) throw error;
             message.success('Report deleted successfully');
+            // Refresh current page
             fetchReports();
         } catch (error: any) {
             message.error('Failed to delete report: ' + error.message);
         }
     };
 
-    const handleDownload = async (record: IncomingReport) => {
-        if (!record.id) return;
-        setDownloadingId(record.id);
+    const handleDownload = async (withSignature: boolean) => {
+        if (!downloadRecord || !downloadRecord.id) return;
+        setDownloadingId(downloadRecord.id);
+        setIsDownloadModalVisible(false);
         try {
             const blob = await pdf(
-                <RawMaterialTestPDF data={record} supplierName={(record as any).suppliers?.name} />
+                <RawMaterialTestPDF data={downloadRecord} supplierName={(downloadRecord as any).suppliers?.name} withSignature={withSignature} />
             ).toBlob();
 
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Raw_Material_Test_Report_${record.reportNo}.pdf`;
+            link.download = `Raw_Material_Test_Report_${downloadRecord.reportNo}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -77,7 +110,13 @@ const RawMaterialTestList: React.FC = () => {
             message.error('Failed to generate PDF: ' + error.message);
         } finally {
             setDownloadingId(null);
+            setDownloadRecord(null);
         }
+    };
+
+    const showDownloadModal = (record: IncomingReport) => {
+        setDownloadRecord(record);
+        setIsDownloadModalVisible(true);
     };
 
     const columns = [
@@ -95,6 +134,11 @@ const RawMaterialTestList: React.FC = () => {
             title: 'Batch No',
             dataIndex: 'batchNo',
             key: 'batchNo',
+        },
+        {
+            title: 'Batch Size',
+            dataIndex: 'batchSize',
+            key: 'batchSize',
         },
         {
             title: 'Supplier',
@@ -134,7 +178,7 @@ const RawMaterialTestList: React.FC = () => {
                         icon={downloadingId === record.id ? <LoadingOutlined /> : <DownloadOutlined />}
                         title="Download PDF"
                         disabled={downloadingId === record.id}
-                        onClick={() => handleDownload(record)}
+                        onClick={() => showDownloadModal(record)}
                     />
                     <Button
                         danger
@@ -155,16 +199,25 @@ const RawMaterialTestList: React.FC = () => {
         <div style={{ padding: 24 }}>
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>Raw Material Test Reports</h2>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditingReport(null);
-                        setIsModalVisible(true);
-                    }}
-                >
-                    New Report
-                </Button>
+                <Space>
+                    <Input.Search
+                        placeholder="Search by Report No, Product Name, or Batch No"
+                        onSearch={handleSearch}
+                        style={{ width: 300 }}
+                        allowClear
+                        enterButton
+                    />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                            setEditingReport(null);
+                            setIsModalVisible(true);
+                        }}
+                    >
+                        New Report
+                    </Button>
+                </Space>
             </div>
 
             <Table
@@ -172,6 +225,14 @@ const RawMaterialTestList: React.FC = () => {
                 dataSource={reports}
                 loading={loading}
                 rowKey="id"
+                pagination={{
+                    current: currentPage,
+                    pageSize: pageSize,
+                    total: total,
+                    showSizeChanger: true,
+                    showTotal: (total) => `Total ${total} items`,
+                }}
+                onChange={handleTableChange}
             />
 
             <Modal
@@ -190,6 +251,36 @@ const RawMaterialTestList: React.FC = () => {
                         fetchReports();
                     }}
                 />
+            </Modal>
+
+            <Modal
+                title="Download Options"
+                open={isDownloadModalVisible}
+                onCancel={() => {
+                    setIsDownloadModalVisible(false);
+                    setDownloadRecord(null);
+                }}
+                footer={null}
+                destroyOnHidden
+            >
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <p style={{ marginBottom: 20 }}>Do you want to include signatures in the PDF?</p>
+                    <Space size="large">
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={() => handleDownload(true)}
+                        >
+                            With Signature
+                        </Button>
+                        <Button
+                            size="large"
+                            onClick={() => handleDownload(false)}
+                        >
+                            Without Signature
+                        </Button>
+                    </Space>
+                </div>
             </Modal>
         </div>
     );
