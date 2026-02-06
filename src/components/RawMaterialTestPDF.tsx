@@ -21,6 +21,9 @@ Font.register({
     ]
 });
 
+// Disable hyphenation to prevent words from splitting
+Font.registerHyphenationCallback(word => [word]);
+
 const styles = StyleSheet.create({
     page: {
         paddingTop: 140,
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
     },
     // Typography
     companyNameText: {
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     companyAddressText: {
@@ -115,7 +118,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     certTitleText: {
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: 'bold',
     },
     // Existing styles
@@ -326,11 +329,11 @@ const RawMaterialTestPDF: React.FC<Props> = ({ data, supplierName, withSignature
                         <View style={[styles.tableCell, styles.labelCol]}><Text>Date of Sample</Text></View>
                         <View style={[styles.tableCell, styles.valueCol]}><Text>{data.sampleDate ? dayjs(data.sampleDate).format('DD.MM.YYYY') : '---'}</Text></View>
                         <View style={[styles.tableCell, styles.labelCol]}><Text>Mfg. Date</Text></View>
-                        <View style={[styles.tableCellNoRight, styles.valueCol]}><Text>{data.mfgDate ? dayjs(data.mfgDate).format('MM.YYYY') : '---'}</Text></View>
+                        <View style={[styles.tableCellNoRight, styles.valueCol]}><Text>{data.mfgDate ? dayjs(data.mfgDate).format('MMM YYYY') : '---'}</Text></View>
                     </View>
                     <View style={styles.tableRow}>
                         <View style={[styles.tableCell, styles.labelCol]}><Text>Exp. Date</Text></View>
-                        <View style={[styles.tableCell, styles.valueCol]}><Text>{data.expDate ? dayjs(data.expDate).format('MM.YYYY') : '---'}</Text></View>
+                        <View style={[styles.tableCell, styles.valueCol]}><Text>{data.expDate ? dayjs(data.expDate).format('MMM YYYY') : '---'}</Text></View>
                         <View style={[styles.tableCell, styles.labelCol]}><Text>Release Date</Text></View>
                         <View style={[styles.tableCellNoRight, styles.valueCol]}><Text>{data.releaseDate ? dayjs(data.releaseDate).format('DD.MM.YYYY') : '---'}</Text></View>
                     </View>
