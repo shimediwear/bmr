@@ -1,7 +1,7 @@
 import { BMRData } from './types';
 
 export const mapDbToBMRData = (item: any): BMRData => ({
-    ...item,
+    id: item.id,
     productName: item.product_name,
     productCode: item.product_code,
     brandName: item.brand_name,
@@ -13,15 +13,21 @@ export const mapDbToBMRData = (item: any): BMRData => ({
     typeOfPacking: item.type_of_packing,
     dateOfCommencement: item.date_of_commencement,
     dateOfCompletion: item.date_of_completion,
-    rawMaterials: item.raw_materials,
-    packingMaterials: item.packing_materials,
+    rawMaterials: item.raw_materials || [],
+    packingMaterials: item.packing_materials || [],
     kitContents: item.kit_contents || [],
-    documentNo: item.document_no,
-    revisionNo: item.revision_no,
-    issueNo: item.issue_no,
     bmrType: item.bmr_type || 'standard',
     productType: item.product_type,
     rawMaterialForSpecification: item.raw_material_for_specification,
+    processSteps: item.process_steps || {},
+    finalPacking: item.final_packing || {},
+    sterilization: item.sterilization || {},
+    labeling: item.labeling || {},
+    declarations: item.declarations || {},
+    status: item.status || 'draft',
+    documentNo: item.document_no || '',
+    revisionNo: item.revision_no || '',
+    issueNo: item.issue_no || '',
 });
 
 export const mapBMRDataToDb = (data: BMRData, userId?: string) => ({
@@ -45,9 +51,6 @@ export const mapBMRDataToDb = (data: BMRData, userId?: string) => ({
     final_packing: data.finalPacking,
     declarations: data.declarations,
     status: data.status,
-    document_no: data.documentNo,
-    revision_no: data.revisionNo,
-    issue_no: data.issueNo,
     bmr_type: data.bmrType || 'standard',
     product_type: data.productType,
     raw_material_for_specification: data.rawMaterialForSpecification,
